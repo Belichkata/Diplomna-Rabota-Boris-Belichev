@@ -17,13 +17,13 @@ def get_traffic_status(lat, lon, current_speed, tomtom_key):
     try:
         response = requests.get(url, params=params, timeout=10)
         if response.status_code != 200:
-            print(f"⚠️ TomTom API error {response.status_code}: {response.text}")
+            print(f" TomTom API error {response.status_code}: {response.text}")
             return "unknown"
 
         data = response.json()
         segment = data.get("flowSegmentData")
         if not segment:
-            print("❌ No flowSegmentData returned.")
+            print(" No flowSegmentData returned.")
             return "unknown"
 
         free_flow = segment.get("freeFlowSpeed", 0)
@@ -32,13 +32,13 @@ def get_traffic_status(lat, lon, current_speed, tomtom_key):
 
         # Compare current driving speed with free-flow
         if current_speed < free_flow * 0.4:
-            print("🚗 Heavy traffic detected.")
+            print(" Heavy traffic detected.")
             return "heavy"
         elif current_speed < free_flow * 0.8:
-            print("🚙 Moderate traffic.")
+            print(" Moderate traffic.")
             return "moderate"
         else:
-            print("🏎️ Free-flowing traffic.")
+            print(" Free-flowing traffic.")
             return "free"
     except Exception as e:
         print(f"❌ Error checking TomTom traffic: {e}")
