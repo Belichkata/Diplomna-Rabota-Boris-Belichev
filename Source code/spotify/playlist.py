@@ -270,7 +270,7 @@ def create_smart_playlist_fixed(sp, total_tracks=40, env_lux=None):
 
 
     # --- Get live traffic condition ---
-    TOMTOM_KEY = "9M7YdaLFAFD06NgSt1Vxwp5ROzZt0dBS"  # <-- Replace with your key
+    TOMTOM_KEY = ""  
     traffic_status = get_traffic_status(lat, lon, speed_input, TOMTOM_KEY)
 
 # Adjust mood weighting if in traffic
