@@ -1,16 +1,19 @@
-import json, os
-from config import combined_file
+import json
 
-def update_json(driver_state):
-    data = {"driver": {"state": driver_state}}
-    try:
-        if os.path.exists(combined_file):
-            with open(combined_file, "r") as f:
-                old = json.load(f)
-        else:
-            old = {}
-        old.update(data)
-        with open(combined_file, "w") as f:
-            json.dump(old, f, indent=4)
-    except Exception as e:
-        print(f"Error writing json: {e}")
+from config import SETTINGS
+from utils import state
+
+
+def update_json() -> None:
+    data = {"driver": {"state": state.driver_state}}
+    existing = {}
+    if SETTINGS.combined_data_file.exists():
+        try:
+            existing = json.loads(SETTINGS.combined_data_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing = {}
+    existing.update(data)
+    SETTINGS.combined_data_file.write_text(
+        json.dumps(existing, indent=4),
+        encoding="utf-8",
+    )

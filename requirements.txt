@@ -1,0 +1,9 @@
+Flask
+spotipy
+openai
+requests
+opencv-python
+dlib
+picamera2
+adafruit-blinka
+adafruit-circuitpython-tsl2561

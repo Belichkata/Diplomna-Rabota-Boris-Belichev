@@ -1,122 +1,33 @@
-# Diplomna-Rabota-Boris-Belichev
-Moodify е интелигентна система, която автоматично адаптира възпроизвежданото музикално съдържание спрямо текущото състояние на водача и заобикалящата го среда.
-Проектът комбинира сензорни данни, контекстуална информация и изкуствен интелект с цел подобряване на комфорта, концентрацията и безопасността по време на шофиране.
+## Drive Mood
 
-Общо описание на проекта
+This repository contains the modular version of the latest `final2.py` application.
 
-По време на шофиране фактори като осветеност, трафик, метеорологични условия и част от денонощието оказват пряко влияние върху вниманието и настроението на водача.
-Moodify цели да адресира този проблем чрез:
+### Setup
 
-Наблюдение на околната среда чрез сензори и външни API услуги
+1. Create a local `.env` file from `.env.example`.
+2. Install the Python dependencies from `requirements.txt`.
+3. Place `shape_predictor_68_face_landmarks.dat` inside `Source code/models/`.
+4. Run `python main.py` from the `Source code` directory.
 
-Анализ на контекстуални параметри (час, осветеност, скорост, трафик)
+### Environment Variables
 
-Използване на изкуствен интелект за вземане на решения относно музикалното съдържание
-
-Автоматично създаване и възпроизвеждане на персонализирани Spotify плейлисти
-
-Системата е проектирана да работи в реална автомобилна среда и се интегрира с аудио системата на автомобила чрез Bluetooth връзка със смартфона на водача.
-
-Основни функционалности
-
-Събиране на данни от средата
-
-Осветеност чрез TSL2561 light sensor
-
-Геолокация и околна среда чрез Geoapify API
-
-Трафик в реално време чрез TomTom Traffic API
-
-Метеорологични условия чрез OpenWeatherMap API
-
-Интелигентен анализ
-
-Определяне на условията на шофиране (ден/нощ, светло/тъмно, бързо/бавнопридвижване)
-
-Анализ на потребителски предпочитания в Spotify
-
-AI-базиран подбор на музикално съдържание чрез OpenAI API
-
-🎵 Управление на музиката
-
-Автоматично създаване на плейлисти в Spotify
-
-Баланс между познато съдържание и нови предложения
-
-Стартиране на възпроизвеждане директно в автомобила
-
-Уеб интерфейс
-
-Flask-базирано локално уеб приложение
-
-Стартиране и спиране на мониторинга
-
-Управление на създадените плейлисти
-
-Архитектура на системата
-
-Системата е изградена върху Raspberry Pi 5, който изпълнява ролята на централен управляващ блок:
-
-Сензорен слой
-
-TSL2561 – измерване на осветеност
-
-Комуникационен слой
-
-OpenAI API – интелигентен подбор на музика
-
-Spotify Web API – управление на плейлисти
-
-OpenWeatherMap / TomTom / Geoapify – контекстуални данни
-
-Възпроизвеждане на звук
-
-Spotify → смартфон на водача → автомобилна аудио система (Bluetooth)
-
-Захранване
-
-12V автомобилно захранване + buck converter към 5V
-
-Използвани технологии
-
-Програмни езици: Python 3
-
-Хардуер: Raspberry Pi 5, TSL2561 light sensor
-
-Frameworks: Flask
-
-API услуги:
-
-Spotify Web API
-
-OpenAI API
-
-OpenWeatherMap API
-
-TomTom Traffic API
-
-Geoapify API
-
-Комуникация: Bluetooth (смартфон → автомобил)
-
-Сигурност
-
-API ключовете не се съхраняват директно в кода.
-Използва се отделен конфигурационен файл (config.py / .env), който не се публикува в GitHub репозиторито.
-
-Стартиране на проекта
-
-Клониране на репозиторито:
-
-git clone https://github.com/your-username/moodify.git
-cd moodify
-
-Настройване на API ключове в конфигурационния файл
-
-Стартиране на приложението:
-
-python final2.py
-
-Отваряне на уеб интерфейса:
-
-http://127.0.0.1:5000
+- `APP_SECRET_KEY`
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+- `SPOTIFY_REDIRECT_URI`
+- `OPENWEATHER_API_KEY`
+- `GEOAPIFY_API_KEY`
+- `TOMTOM_API_KEY`
+- `DEFAULT_CITY`
+- `DEFAULT_COUNTRY_CODE`
+- `DEFAULT_LATITUDE`
+- `DEFAULT_LONGITUDE`
+- `SIMULATED_SPEED_KMH`
+- `DEFAULT_LUX`
+- `TOTAL_TRACKS`
+- `MONITORING_DURATION_SECONDS`
+- `COMBINED_DATA_FILE`
+- `SHAPE_PREDICTOR_PATH`
+- `FLASK_DEBUG`

@@ -1,101 +1,94 @@
-
-
-import os
 import threading
 
-from flask import (
-    Flask,
-    session,
-    redirect,
-    url_for,
-    request,
-    render_template_string,
-)
+from flask import Flask, redirect, render_template_string, request, url_for
 
-from spotify.auth import sp_oauth, spotify_token_info, get_spotify_client
 from camera.driver_monitor import monitor_driver
-from utils.state import (
-    stop_event,
-    monitoring_active,
-    monitoring_thread,
-    playlist_created,
-    created_playlist_id,
-)
+from config import SETTINGS
+from spotify.auth import get_spotify_client, set_token_info, sp_oauth, spotify_auth_ready
+from utils import state
+
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.urandom(64)
+app.config["SECRET_KEY"] = SETTINGS.app_secret_key
+
+
+def _render_message_page(message):
+    return render_template_string(
+        """
+        <h1>Drive Mood</h1>
+        <p>{{ message }}</p>
+        <p><a href="{{ url_for('home') }}">Back</a></p>
+        """,
+        message=message,
+    )
 
 
 @app.route("/")
 def home():
-    sp = get_spotify_client()
-    if sp is None:
+    if not spotify_auth_ready() or sp_oauth is None:
+        return _render_message_page("Spotify credentials are missing. Add them to your local .env file.")
+    spotify_client = get_spotify_client()
+    if spotify_client is None:
         return redirect(sp_oauth.get_authorize_url())
-    html = """
-    <h1>🚗 Drive Mood</h1>
-    <form action="{{ url_for('start') }}" method="post">
-        <button type="submit">▶ Start Monitoring</button>
-    </form>
-    <form action="{{ url_for('stop') }}" method="post">
-        <button type="submit">⏹ Stop & Delete Playlist</button>
-    </form>
-    {% if playlist_created %}
-    <p style="color: green;">✅ Playlist created and monitoring stopped.</p>
-    {% endif %}
-    """
-    return render_template_string(html)
+    return render_template_string(
+        """
+        <h1>Drive Mood</h1>
+        <form action="{{ url_for('start') }}" method="post">
+            <button type="submit">Start Monitoring</button>
+        </form>
+        <form action="{{ url_for('stop') }}" method="post">
+            <button type="submit">Stop Monitoring and Delete Playlist</button>
+        </form>
+        <p>Driver state: {{ driver_state }}</p>
+        {% if playlist_created %}
+        <p>Playlist created and monitoring stopped.</p>
+        {% endif %}
+        """,
+        driver_state=state.driver_state,
+        playlist_created=state.playlist_created,
+    )
+
 
 @app.route("/callback")
 def callback():
-    global spotify_token_info
+    if sp_oauth is None:
+        return _render_message_page("Spotify credentials are missing.")
     token_info = sp_oauth.get_access_token(request.args.get("code"))
-    spotify_token_info = token_info
+    set_token_info(token_info)
     return redirect(url_for("home"))
+
 
 @app.route("/start", methods=["POST"])
 def start():
-    from utils.state import monitoring_active, monitoring_thread, playlist_created
-
-    playlist_created = False
-    sp = get_spotify_client()
-    if sp is None:
+    if not spotify_auth_ready() or sp_oauth is None:
+        return _render_message_page("Spotify credentials are missing.")
+    if state.monitoring_thread and state.monitoring_thread.is_alive():
+        return redirect(url_for("home"))
+    spotify_client = get_spotify_client()
+    if spotify_client is None:
         return redirect(sp_oauth.get_authorize_url())
-
-    if not monitoring_active:
-        monitoring_active = True
-        monitoring_thread = threading.Thread(target=monitor_driver)
-        monitoring_thread.start()
-
+    state.playlist_created = False
+    state.stop_event.clear()
+    state.monitoring_active = True
+    state.monitoring_thread = threading.Thread(target=monitor_driver, daemon=True)
+    state.monitoring_thread.start()
     return redirect(url_for("home"))
-
 
 
 @app.route("/stop", methods=["POST"])
 def stop():
-    from utils.state import (
-        monitoring_active,
-        monitoring_thread,
-        playlist_created,
-        created_playlist_id,
-        stop_event,
-    )
-
-    sp = get_spotify_client()
-
-    if monitoring_active:
-        monitoring_active = False
-        if monitoring_thread:
-            stop_event.set()
-            monitoring_thread.join(timeout=2)
-            print("🛑 Monitoring thread stopped.")
-
-    if created_playlist_id and sp:
+    spotify_client = get_spotify_client()
+    if state.monitoring_active:
+        state.monitoring_active = False
+        state.stop_event.set()
+        if state.monitoring_thread:
+            state.monitoring_thread.join(timeout=5)
+            state.monitoring_thread = None
+    if state.created_playlist_id and spotify_client:
         try:
-            sp.current_user_unfollow_playlist(created_playlist_id)
-            print(f"🗑️ Deleted playlist {created_playlist_id}")
-        except Exception as e:
-            print(f"Error deleting playlist: {e}")
-        created_playlist_id = None
-
-    playlist_created = False
+            spotify_client.current_user_unfollow_playlist(state.created_playlist_id)
+        except Exception as error:
+            print(f"Error deleting playlist: {error}")
+        state.created_playlist_id = None
+    state.playlist_created = False
     return redirect(url_for("home"))
